@@ -19,8 +19,6 @@ height = 400
 init_pos = [320-road_width/4,height*3/4]
 
 
-
-
 class Car:
     def __init__(self,pos,xvel,yvel):
         self.pos = pos
@@ -48,6 +46,12 @@ right = width/2 + road_width/4 - 20
 
 
 def gameLoop():
+    def record(car_pos,nearest_obs,result):
+        f = open('train.csv','a')
+        f.write(f'{car_pos[0]},{car_pos[1]},{nearest_obs[0]},{nearest_obs[1]},{result}\n')
+        f.close()
+
+
     def restart():
         gameLoop()
 
@@ -61,6 +65,7 @@ def gameLoop():
     myfont = pygame.font.SysFont('Comic Sans MS', 30)
     start = datetime.datetime.now()
     score = 0
+    obs_spawn_int = 2
     def reward():
         score+=1
         print(score)
@@ -97,11 +102,10 @@ def gameLoop():
         
         end = datetime.datetime.now()
         delta = end - start
-        if(delta.seconds >= 3):
+        if(delta.seconds >= obs_spawn_int):
             start = end
             side = random.choice([right,left])
             createObs(side)
-        
         
             
         for obs in obss:
@@ -112,11 +116,14 @@ def gameLoop():
             
             
         curr_car_pos = (int(car.pos[0]),int(car.pos[1]))
-        if(gameWindow.get_at(curr_car_pos) == (255,0,0,255)):
+        color_at_car_pos = gameWindow.get_at(curr_car_pos)
+        if( color_at_car_pos == (255,0,0,255)):
+            record(curr_car_pos,obss[0].pos,0)
             restart()
         
         try: 
             if(car.pos[1] == obss[0].pos[1]):
+                record(curr_car_pos,obss[0].pos,1)
                 score+=1
         except:
             pass    
@@ -132,9 +139,6 @@ def gameLoop():
         car.pos[1]+=car.yvel
         pygame.display.update()
 
-  
-
-        
         clock.tick(fps)
 
 gameLoop()
